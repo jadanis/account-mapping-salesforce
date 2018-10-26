@@ -1,0 +1,20 @@
+public with sharing class GoogleMap {
+
+    @AuraEnabled
+    public static List<Account> getAccounts(Double lat, Double lon, Integer distance){
+        //This can be replaced with neccessary record types for any organization
+        Id locRId = Schema.SObjectType.Account.getRecordTypeInfosByName().get('Location Customer').getRecordTypeId();
+        Id locPId = Schema.SObjectType.Account.getRecordTypeInfosByName().get('Location Prospect').getRecordTypeId();
+        Account[] accs = [SELECT Id, Name, BillingLatitude, BillingLongitude
+                         FROM Account
+                         WHERE BillingLatitude != null
+                         AND BillingLongitude != null
+                         AND (DISTANCE(BillingAddress,GEOLOCATION(:lat,:lon) , 'mi') < :distance)
+                         AND (RecordTypeId = :locRId OR RecordTypeId = :locPId)
+                         ];
+        return accs;
+    }// end of getAccounts
+    
+
+    
+}
